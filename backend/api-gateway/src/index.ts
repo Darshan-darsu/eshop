@@ -55,7 +55,7 @@ app.get("/gateway-health", (_req, res) => {
   res.send({ message: "Welcome to api gateways" });
 });
 
-app.use("/auth", proxy(authServiceProxy));
+app.use("/", proxy(authServiceProxy));
 app.use("/authe", proxy(authServicE2EeProxy));
 
 

@@ -72,6 +72,8 @@ try {
     await redis.del(`otp:${email}`,failedAttemptsKey)
 } catch (error) {
     console.log("Error in veirfy otp:",error)
+    return next(error)
+    
 }
 }
 
@@ -79,15 +81,15 @@ export const handleForgotPassword=async(req:Request,res:Response,next:NextFuncti
     try {
         const {email}=req.body;
         if(!email){
-            throw new ValidationError("All fields are required")
+            return next(new ValidationError("All fields are required"));
         }
-        const user=userType =="user" && await prisma.users.findUnique({where:{email}})
+        const user=userType =="user" ?await prisma.users.findUnique({where:{email}}) : await prisma.sellers.findUnique({where:{email}})
         if(!user){
-            throw new AuthError("User does not exist")
+            return next(new AuthError("User does not exist"));
         }
         await checkOtpRestriction(email,next)
         await trackOtpRestriction(email,next)
-        await sendOtp(user.name,email,"forgot-password-user-mail")
+        await sendOtp(user.name,email,userType=="user"?"forgot-password-user-mail":"forgot-password-seller-mail")
         res.status(200).json({success:true,message:"Otp sent to your email. please verify your account"})
     } catch (error) {
         console.log("Error in handleForgotPassword ",error)
